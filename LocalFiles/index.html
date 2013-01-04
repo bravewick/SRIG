@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!--
+* @file index.html
+* @author Kostas Tsolakis
+*
+* On load the application request a json object containing 
+* informations about remote image files such as image url,
+* width and height (width and height are not used) and using
+* jQuery implements a gallery functionality.
+*
+* When the user touches on the right side of the image the 
+* it triggers the next image to be shown. The previous image
+* is shown when the user presses on the left side of the image
+-->
+<html>
+	<head>
+		<meta name="viewport" content="width=320, user-scalable=no">
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+		<title>Simple MoSync HTML5/JS/jQuery Remote image gallery</title>
+		<link rel="stylesheet" href="style.css" type="text/css" media="screen" title="no title" charset="utf-8">
+		<script type="text/javascript" charset="utf-8" src="js/wormhole.js"></script>
+		<script type="text/javascript" charset="utf-8" src="js/jquery-1.8.3.min.js"></script>
+		<script type="text/javascript">
+			/**
+			 * Initialization.
+			 */
+			 var imagesJSON = {
+                images: [
+                    {
+                        url: "http://dummyimage.com/500x400/000000/fff&text=image1",
+                        width: 500,
+                        height: 400
+                    },
+                    {
+                        url: "http://dummyimage.com/400x400/000000/fff&text=image2",
+                        width: 400,
+                        height: 400
+                    },
+                    {
+                        url: "http://dummyimage.com/400x400/000000/fff&text=image3",
+                        width: 400,
+                        height: 400
+                    },
+                ]
+            };
+
+        	$(document).ready(function () {
+        		
+        		document.addEventListener("backbutton", close, true);
+        		
+        		var backgroundColor = "#000000";
+        		
+        		document.documentElement.style.backgroundColor = backgroundColor;
+				document.body.style.backgroundColor = backgroundColor;
+				
+        		// Set all images width to 0 but first
+                for( var i = 0; i < imagesJSON.images.length; i++) {
+
+                    var imageElement    = document.createElement("img");
+                    imageElement.id     = i;
+                    imageElement.src    = imagesJSON.images[i].url;
+                    
+                    imageElement.style.display = "none";
+
+                    if (imagesJSON.images[i].width >= imagesJSON.images[i].height) {
+                        
+                    	mosync.rlog("landscape image");
+                        imageElement.style.width = "100%";
+                    } else {
+                    	
+                    	mosync.rlog("portrait");
+                        imageElement.style.height = "100%";
+                    }
+                    
+                    document.getElementById("screen").appendChild(imageElement);
+                }
+        		
+        		// display the only the first image
+                document.getElementById("0").style.display = "block";
+
+        		/**
+        		 * Depending on what side of the image touches the image
+        		 * it loads next or previous image
+        		 */
+        		$("img").click(function(event) {
+
+        			mosync.rlog("click x:" + (event.pageX - $(this).position().left) + 
+        						"click y:" + (event.pageX - $(this).position().top));
+
+        			if( (event.pageX - $(this).position().left) > (event.target.width/2) ) {
+
+        				if ($(this).next().length) {
+        					
+        					mosync.rlog("next image");
+                            $(this).hide();
+                            $(this).next().show();
+	        			} else {
+	        				vibrate();
+	        			}
+        			} else {
+
+        				if ($(this).prev().length) {
+							
+        					mosync.rlog("previous image");
+                            $(this).hide();
+                            $(this).prev().show();
+	        			} else {
+	        				vibrate();
+	        			}
+        			}
+			  	});
+        	});
+
+			/**
+			 * Handle the backbutton event.
+			 */
+			function close()
+			{
+				// Close the application if the back key is pressed.
+				mosync.bridge.send(["close"]);
+			}
+
+			/**
+			 * Vibrate for 1 second.
+			 */
+			function vibrate()
+			{
+				navigator.notification.vibrate(1000);
+			}
+
+		</script>
+	</head>
+	<body>
+		<div id="screen">
+			<h2>Simple image gallery.</h2>
+            <h3>Mosync HTML5/JS and jQuery project.</h3>
+		</div>
+	</body>
+</html>
